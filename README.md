@@ -3,7 +3,7 @@ Configure Citrix Netscaler loadbalancing for container platforms such as Docker 
 
 # Theory of Operation
 1. Containers that form a load-balanced backend for an app are labeled with the same label 
-2. Information from the docker API for the labeled containers are used to configure a Netscaler loadbalancer.
+2. Information from the container platform API (host IP and port) for the labeled containers are used to configure a Netscaler loadbalancer.
 
 # Usage
 
@@ -19,7 +19,7 @@ sudo python setup.py
 
 Get the code:
 ```
-git clone <>
+git clone https://github.com/chiradeep/nitrox.git
 cd nitrox
 ```
 To run the code, you need to point it to a Docker swarm location. Also, you need to pass in the Netscaler credentials.
@@ -33,7 +33,7 @@ export NS_PASSWORD=3df8jha@k0
 
 Application information is also passed in via environment variable:
 ```
-export APP_INFO='{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo0", "lb_ip":"10.220.73.122", "lb_port":"443"}, {"name": "foo1", "lb_ip":"10.220.73.123", "lb_port":"80"}, {"name":"foo2"}, {"name":"foo3"}]}'
+export APP_INFO='{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo", "lb_ip":"10.220.73.122", "lb_port":"443"}, {"name": "foo1", "lb_ip":"10.220.73.123", "lb_port":"80"}, {"name":"foo2"}, {"name":"foo3"}]}'
 ```
 
 Run the code while pointing it to the Docker Swarm environment. (This assumes you are running on the Docker Swarm controller)
@@ -42,7 +42,7 @@ Run the code while pointing it to the Docker Swarm environment. (This assumes yo
 python main.py  --swarm-url=$DOCKER_HOST --swarm-tls-ca-cert=$DOCKER_CERT_PATH/ca.pem --swarm-tls-cert=$DOCKER_CERT_PATH/cert.pem --swarm-tls-key=$DOCKER_CERT_PATH/key.pem
 ```
 
-Containers instances for each app backend have to be started with a label of the form label=<app_key>=<app_name> .
+Containers instances for each app backend have to be started with a label of the form label=app_key=app_name. For instance
 
 ````
 for i in 0 1 2 3 4 5
