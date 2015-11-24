@@ -56,8 +56,10 @@ class DockerSwarmInterface:
         try:
             app_label = app_key + "=" + appname
             backends = self.get_backends_for_app(app_label)
-            backends = map(lambda y: ("192.168.99.100", y[1]), backends)
-            # TODO: remove above for actual swarm
+            # backends = map(lambda y: ("192.168.99.100", y[1]), backends)
+            # TODO: remove above for actual swarm. With plain docker machine, host IP
+            # is "0.0.0.0" -- that cannot be load balanced. Docker swarm supplies
+            # correct host IP.
             logger.debug("Backends are %s" % str(backends))
             self.netskaler.configure_app(appname,  backends)
         finally:
