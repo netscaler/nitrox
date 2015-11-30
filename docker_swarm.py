@@ -82,20 +82,22 @@ class DockerSwarmInterface:
                      "label": [app_label]})
         for e in events:
             evj = json.loads(e)
-            logger.info("Evnt status: %s, id: %s" % (evj['status'], evj['id']))
             status = evj['status']
             c_id = evj['id']
             if status in ['start', 'die', 'kill']:
                 # TODO: BUG in docker swarm events does not actually apply
                 # filters. Use 'docker ps' to verify the app that is changing
                 # belongs to this thread
+                logger.debug("Event status: %s, id: %.12s" %
+                             (evj['status'], evj['id']))
                 containers = self.client.containers(
                     all=True,
                     filters={"label": [app_label]})
                 container_ids = [c.get('Id') for c in containers
                                  if c.get('Id') == c_id]
                 if container_ids:
-                    logger.info("Configuring NS for app %s" % appname)
+                    logger.info("Configuring NS for app %s,\
+                                container id=%.12s" % (appname, c_id))
                     self.configure_ns_for_app(app_key, appname)
 
     def watch_all_apps(self):
