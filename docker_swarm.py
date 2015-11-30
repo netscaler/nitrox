@@ -2,6 +2,7 @@
 
 import argparse
 import getopt
+import json
 import os
 import sys
 import threading
@@ -57,9 +58,9 @@ class DockerSwarmInterface:
             app_label = app_key + "=" + appname
             backends = self.get_backends_for_app(app_label)
             # backends = map(lambda y: ("192.168.99.100", y[1]), backends)
-            # TODO: remove above for actual swarm. With plain docker machine, host IP
-            # is "0.0.0.0" -- that cannot be load balanced. Docker swarm supplies
-            # correct host IP.
+            # TODO: remove above for actual swarm. With plain docker machine,
+            # host IP is "0.0.0.0" -- that cannot be load balanced. Docker
+            # swarm supplies correct host IP.
             logger.debug("Backends are %s" % str(backends))
             self.netskaler.configure_app(appname,  backends)
         finally:
@@ -80,7 +81,22 @@ class DockerSwarmInterface:
             filters={"event": ["start", "kill", "die"],
                      "label": [app_label]})
         for e in events:
-            self.configure_ns_for_app(app_key, appname)
+            evj = json.loads(e)
+            logger.info("Evnt status: %s, id: %s" % (evj['status'], evj['id']))
+            status = evj['status']
+            c_id = evj['id']
+            if status in ['start', 'die', 'kill']:
+                # TODO: BUG in docker swarm events does not actually apply
+                # filters. Use 'docker ps' to verify the app that is changing
+                # belongs to this thread
+                containers = self.client.containers(
+                    all=True,
+                    filters={"label": [app_label]})
+                container_ids = [c.get('Id') for c in containers
+                                 if c.get('Id') == c_id]
+                if container_ids:
+                    logger.info("Configuring NS for app %s" % appname)
+                    self.configure_ns_for_app(app_key, appname)
 
     def watch_all_apps(self):
         app_key = self.app_info['appkey']
