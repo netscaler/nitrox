@@ -10,21 +10,21 @@ Configure Citrix Netscaler loadbalancing for container platforms such as Docker 
 # Usage
 ## Easy
 ### Pre-requisites
+0. Docker Swarm Cluster. Instructions assume you are running on the Swarm Manager/Master
 1. Credentials for a running Citrix Netscaler (VPX/MPX/SDX). Replace with your own:
 
-````
-export NS_IP=10.220.73.33
-export NS_USER=nsroot
-export NS_PASSWORD=3df8jha@k0
-````
+   ````
+   export NS_IP=10.220.73.33
+   export NS_USER=nsroot
+   export NS_PASSWORD=3df8jha@k0
+   ````
 
 2. List of microservices / apps that have to be load balanced. For example, 'AccountService', 'ProductCatalog', 'ShoppingCart', etc.
 3. An `appkey` that will be used to label the containers that comprise the apps/microservices. For example, `com.citrix.lb.appname`
-3. Netscaler that has been configured with VIP(s) for above apps. For example, let's say there is a microservice called 'AccountService' with a load balanced IP of 10.220.73.222. On the Netscaler:
-```
-add lb vserver AccountService HTTP 10.220.73.222 80 -persistenceType COOKIE -lbMethod LEASTCONNECTION
-```
-4. Docker Swarm cluster.
+4. Netscaler that has been configured with VIP(s) for above apps. For example, let's say there is a microservice called 'AccountService' with a load balanced IP of 10.220.73.222. On the Netscaler:
+    ```
+    add lb vserver AccountService HTTP 10.220.73.222 80 -persistenceType COOKIE -lbMethod LEASTCONNECTION
+    ```
 
 ### Launch the 'nitrox' container 
 The code has been containerized into `chiradeeptest/nitrox` . Use this container from the swarm master:
