@@ -10,12 +10,10 @@ sys.path.append(os.getcwd())
 from docker_swarm import DockerSwarmInterface
 from netscaler import NetscalerInterface
 
-handler = logging.StreamHandler(sys.stderr)
-#handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s  - %(levelname)s - [%(filename)s:%(funcName)-10s] (%(threadName)s) %(message)s',)
-handler.setFormatter(formatter)
+logging.basicConfig(level=logging.CRITICAL,
+        format='%(asctime)s  - %(levelname)s - [%(filename)s:%(funcName)-10s]  (%(threadName)s) %(message)s')
 logger = logging.getLogger('docker_netscaler')
-logger.addHandler(handler)
+logger.addFilter(logging.Filter('docker_netscaler'))
 logger.setLevel(logging.DEBUG)
 
 if __name__ == "__main__":
