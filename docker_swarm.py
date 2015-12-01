@@ -96,8 +96,8 @@ class DockerSwarmInterface:
                 container_ids = [c.get('Id') for c in containers
                                  if c.get('Id') == c_id]
                 if container_ids:
-                    logger.info("Configuring NS for app %s,\
-                                container id=%.12s" % (appname, c_id))
+                    logger.info("Configuring NS for app %s, "
+                                "container id=%.12s" % (appname, c_id))
                     self.configure_ns_for_app(app_key, appname)
 
     def watch_all_apps(self):
