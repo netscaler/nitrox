@@ -22,6 +22,7 @@ Configure Citrix Netscaler loadbalancing for container platforms such as Docker 
 2. List of microservices / apps that have to be load balanced. For example, 'AccountService', 'ProductCatalog', 'ShoppingCart', etc.
 3. An `appkey` that will be used to label the containers that comprise the apps/microservices. For example, `com.citrix.lb.appname`
 4. Netscaler that has been configured with VIP(s) for above apps. For example, let's say there is a microservice called 'AccountService' with a load balanced IP of 10.220.73.222. On the Netscaler:
+
     ```
     add lb vserver AccountService HTTP 10.220.73.222 80 -persistenceType COOKIE -lbMethod LEASTCONNECTION
     ```
