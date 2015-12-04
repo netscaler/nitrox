@@ -7,6 +7,8 @@ Configure Citrix Netscaler loadbalancing for container platforms such as Docker 
 3. The Netscaler admin creates the "frontend" `lb vserver` with the label used in #1
 
 
+![Image of Nitrox](https://github.com/chiradeep/nitrox/master/nitrox.png)
+
 # Usage
 ## Easy
 ### Pre-requisites
