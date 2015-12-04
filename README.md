@@ -6,8 +6,7 @@ Configure Citrix Netscaler loadbalancing for container platforms such as Docker 
 2. Information (host IP and port) from the container platform (such as  [Docker Swarm](https://docs.docker.com/swarm/)) API for the labeled containers are used to configure a Netscaler loadbalancer.
 3. The Netscaler admin creates the "frontend" `lb vserver` with the label used in #1
 
-
-![Image of Nitrox](https://github.com/chiradeep/nitrox/master/nitrox.png)
+<img src="https://github.com/chiradeep/nitrox/blob/master/nitrox.png" width="480"/>
 
 # Usage
 ## Easy
