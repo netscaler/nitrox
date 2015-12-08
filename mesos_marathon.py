@@ -36,7 +36,7 @@ class MarathonInterface(object):
         response = None
         headers = {'Content-Type': 'application/json',
                    'Accept': 'application/json'}
-        url = self.server + 'v2/apps' + appid
+        url = self.server + 'v2/apps' + appid + "/tasks"
         try:
             response = requests.request('GET', url,
                                         headers=headers,
@@ -48,8 +48,8 @@ class MarathonInterface(object):
             logger.error('Got HTTP {code}: {body}'.
                          format(code=response.status_code, body=response.text))
             return []
-        return [(t['host'], t['ports'][0]) # TODO: what if there are > 1 ports
-                for t in response.json()['app']['tasks']]
+        return [(t['host'], t['ports'][0])  # TODO: what if there are > 1 ports
+                for t in response.json()['tasks']]
 
     def events(self):
         """Get event stream
@@ -76,6 +76,8 @@ class MarathonInterface(object):
     def watch_all_apps(self):
         appnames = map(lambda x: '/' + x['name'], self.app_info['apps'])
         for ev in self.events():
+            if ev is None:
+                continue
             app = ev['appId']
             host = ev['host']
             status = ev['taskStatus']
