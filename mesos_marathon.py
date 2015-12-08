@@ -12,7 +12,8 @@ logger = logging.getLogger('docker_netscaler')
 class MarathonInterface(object):
     """Interface for the Marathon REST API."""
 
-    def __init__(self, server, username=None, password=None, timeout=10000):
+    def __init__(self, server, netskaler, app_info, 
+                username=None, password=None, timeout=10000):
         """Constructor
 
         :param server: Marathon URL (e.g., 'http://host:8080' )
@@ -21,10 +22,12 @@ class MarathonInterface(object):
         :param int timeout: Timeout (in seconds) for requests to Marathon
         """
         self.server = server
+        self.netskaler = netskaler
+        self.app_info = app_info
         self.auth = (username, password) if username and password else None
         self.timeout = timeout
 
-    def get_app_endpoints(self, appid):
+    def get_backends_for_app(self, appid):
         """Get host endpoints for apps
 
         :returns: endpoints dict
@@ -40,29 +43,17 @@ class MarathonInterface(object):
                                         auth=self.auth)
         except requests.exceptions.RequestException as e:
             logger.error('Error while calling %s: %s', url, e.message)
-        if response.status_code >= 500:
+            return []
+        if response.status_code >= 300:
             logger.error('Got HTTP {code}: {body}'.
                          format(code=response.status_code, body=response.text))
-            raise RuntimeError(response)
-        elif response.status_code >= 400:
-            logger.error('Got HTTP {code}: {body}'.
-                         format(code=response.status_code, body=response.text))
-            if response.status_code == 404:
-                raise RuntimeError(response)
-            else:
-                raise RuntimeError(response)
-        elif response.status_code >= 300:
-            logger.warn('Got HTTP {code}: {body}'.
-                        format(code=response.status_code, body=response.text))
-        else:
-            logger.debug('Got HTTP {code}: {body}'.
-                         format(code=response.status_code, body=response.text))
-        return [(t['host'], t['ports'])
+            return []
+        return [(t['host'], t['ports'][0]) # TODO: what if there are > 1 ports
                 for t in response.json()['app']['tasks']]
 
     def events(self):
         """Get event stream
-           See:
+           Requires Marathon v0.9. See:
            https://mesosphere.github.io/marathon/docs/rest-api.html#event-stream
         """
         path = 'v2/events'
@@ -78,8 +69,36 @@ class MarathonInterface(object):
                 event = json.loads(line[line.find("data:") +
                                         len('data: '):].rstrip())
                 if event['eventType'] == 'status_update_event':
-                    yield event['appId']
+                    yield {k: event[k]
+                           for k in ['appId', 'host', 'taskStatus', 'taskId']}
             yield None
+
+    def watch_all_apps(self):
+        appnames = map(lambda x: '/' + x['name'], self.app_info['apps'])
+        for ev in self.events():
+            app = ev['appId']
+            host = ev['host']
+            status = ev['taskStatus']
+            relevant = status in ['TASK_RUNNING',
+                                  'TASK_FINISHED',
+                                  'TASK_FAILED',
+                                  'TASK_KILLED',
+                                  'TASK_LOST']
+            if app is not None\
+                    and app in appnames and relevant:
+                logger.info("Configuring NS for app %s, "
+                            "host=%.12s status=%s" % (app, host, status))
+                self.configure_ns_for_app(app.lstrip("/"))
+
+    def configure_ns_for_app(self, appname):
+        backends = self.get_backends_for_app("/" + appname)
+        logger.debug("Backends for %s are %s" % (appname, str(backends)))
+        self.netskaler.configure_app(appname,  backends)
+
+    def configure_ns_for_all_apps(self):
+        appnames = map(lambda x:  x['name'], self.app_info['apps'])
+        for app in appnames:
+            self.configure_ns_for_app(app)
 
 
 if __name__ == "__main__":
