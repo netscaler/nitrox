@@ -1,5 +1,5 @@
 # Nitrox
-Configure Citrix Netscaler loadbalancing for container platforms such as Docker Swarm and Mesos Marathon. Currently only Docker Swarm is supported.
+Configure Citrix Netscaler loadbalancing for container platforms such as Docker Swarm and Mesos Marathon. 
 
 # Theory of Operation
 1. Containers that form a load-balanced backend for an app/microservice are labeled with the same label (e.g., com.citrix.lb.appname=AccountService, or AccountService)
@@ -28,7 +28,7 @@ Configure Citrix Netscaler loadbalancing for container platforms such as Docker 
 #Container Platforms
 
 ### Docker Swarm
-[Docker Swarm] (https://docs.docker.com/swarm/) is a clustered container manager. Instructions are [here](https://github.com/chiradeep/nitrox/swarm/blob/master/swarm/README.swarm.md)
+[Docker Swarm] (https://docs.docker.com/swarm/) is a clustered container manager. Instructions are [here](https://github.com/chiradeep/nitrox/swarm/blob/master/swarm/README.md)
 
 ### Marathon
-[Marathon] (https://mesosphere.github.io/marathon/) is a PAAS framework that can run containerized workloads. Instructions are [here](https://github.com/chiradeep/nitrox/blob/master/marathon/README.marathon.md)
+[Marathon] (https://mesosphere.github.io/marathon/) is a PAAS framework that can run containerized workloads. Instructions are [here](https://github.com/chiradeep/nitrox/blob/master/marathon/README.md)
