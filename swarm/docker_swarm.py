@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 
-import argparse
-import getopt
 import json
-import os
-import sys
 import threading
 from docker import Client
 from docker import tls
-from netscaler import NetscalerInterface
 
 import logging
 logger = logging.getLogger('docker_netscaler')

@@ -2,7 +2,6 @@
 
 from functools import wraps
 import logging
-import sys
 
 from nssrc.com.citrix.netscaler.nitro.exception.nitro_exception \
     import nitro_exception
@@ -20,6 +19,7 @@ from nssrc.com.citrix.netscaler.nitro.resource.config.basic.servicegroup_service
 
 logger = logging.getLogger('docker_netscaler')
 
+
 def ns_session_scope(func):
     @wraps(func)
     def login_logout(self, *args, **kwargs):
@@ -36,7 +36,8 @@ def ns_session_scope(func):
 
 class NetscalerInterface:
 
-    def __init__(self, nsip, nslogin, nspasswd, app_info):
+    def __init__(self, nsip, nslogin, nspasswd, app_info,
+                 configure_frontends=False):
         self.nsip = nsip
         self.nslogin = nslogin
         self.nspasswd = nspasswd
@@ -49,11 +50,12 @@ class NetscalerInterface:
                    {"name": "foo1", "lb_ip":"10.220.73.123", "lb_port":"80"},
                    {"name":"foo2"}, {"name":"foo3"}]}'
         """
-        frontends = [(l['name'], l['lb_ip'], l['lb_port'])
-                     for l in self.app_info['apps']
-                     if l.get('lb_ip') and l.get('lb_port')]
-        for f in frontends:
-            self.configure_lb_frontend(f[0], f[1], f[2])
+        if configure_frontends:
+            frontends = [(l['name'], l['lb_ip'], l['lb_port'])
+                         for l in self.app_info['apps']
+                         if l.get('lb_ip') and l.get('lb_port')]
+            for f in frontends:
+                self.configure_lb_frontend(f[0], f[1], f[2])
 
     def _create_service_group(self, grpname):
         try:
@@ -173,7 +175,7 @@ class NetscalerInterface:
     @ns_session_scope
     def configure_lb(self, lbname, lb_vip, lb_ports, srvrs):
         try:
-            self._create_lb(lbname, "ROUNDROBIN", lb_vip, lb_port)
+            self._create_lb(lbname, "ROUNDROBIN", lb_vip, lb_ports)
             self._create_service_group(lbname)  # Reuse lbname
             self._bind_service_group_lb(lbname, lbname)
             self._configure_services(lbname, srvrs)

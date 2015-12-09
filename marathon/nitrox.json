@@ -1,0 +1,21 @@
+{
+  "id": "nitrox",
+  "cpus": 0.5,
+  "mem": 256.0,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "chiradeeptest/nitrox",
+      "network": "BRIDGE"
+    }
+  },
+  "args": [
+      "--marathon-url", "http://marathon-master:8080/"
+  ],
+  "env": {
+     "NS_IP":"ns1.lab.myco.org"
+     "NS_USER":"nsroot",
+     "NS_PASSWORD":"4hja8A9922@G",
+     "APP_INFO":"{\"apps\": [{\"name\": \"basic-5\"}, {\"name\": \"basic-3\"}]}"
+  }
+}

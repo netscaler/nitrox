@@ -14,5 +14,7 @@ RUN (cd /tmp && tar xvzf ns-10.5-58.11-sdk.tar.gz && \
 RUN pip install docker-py
 
 COPY *.py /usr/src/app/
+COPY swarm/ /usr/src/app/swarm/
+COPY marathon/ /usr/src/app/marathon/
 
 ENTRYPOINT ["python", "/usr/src/app/main.py" ]
