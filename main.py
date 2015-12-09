@@ -6,8 +6,8 @@ import os
 import sys
 import json
 sys.path.append(os.getcwd())
-from docker_swarm import DockerSwarmInterface
-from mesos_marathon import MarathonInterface
+from swarm.docker_swarm import DockerSwarmInterface
+from marathon.mesos_marathon import MarathonInterface
 from netscaler import NetscalerInterface
 
 logging.basicConfig(level=logging.CRITICAL,

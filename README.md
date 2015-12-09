@@ -19,14 +19,16 @@ Configure Citrix Netscaler loadbalancing for container platforms such as Docker 
    ````
 
 2. List of microservices / apps that have to be load balanced. For example, 'AccountService', 'ProductCatalog', 'ShoppingCart', etc.
-3. Netscaler that has been configured with VIP(s) for above apps. For example, lets say there is a microservice called 'AccountService' with a load balanced IP of 10.220.73.222. On the Netscaler:
+3. Netscaler that has been configured with VIP(s) for above apps. For example, lets say there is a microservice/app called 'AccountService' with a load balanced IP of 10.220.73.222. On the Netscaler:
     ```
     add lb vserver AccountService HTTP 10.220.73.222 80 -persistenceType COOKIE -lbMethod LEASTCONNECTION
     ```
     Alternatively, if the `lb_ip` and `lb_port` are included in the `APP_INFO` env variable, the `lb vserver` is configured automatically with some default options (`ROUNDROBIN`)
 
+#Container Platforms
+
 ### Docker Swarm
-[Docker Swarm] (https://docs.docker.com/swarm/) is a clustered container manager. Instructions are [here](https://github.com/chiradeep/nitrox/blob/master/README.swarm.md)
+[Docker Swarm] (https://docs.docker.com/swarm/) is a clustered container manager. Instructions are [here](https://github.com/chiradeep/nitrox/swarm/blob/master/swarm/README.swarm.md)
 
 ### Marathon
-[Marathon] (https://mesosphere.github.io/marathon/) is a PAAS framework that can run containerized workloads. Instructions are [here](https://github.com/chiradeep/nitrox/blob/master/README.marathon.md)
+[Marathon] (https://mesosphere.github.io/marathon/) is a PAAS framework that can run containerized workloads. Instructions are [here](https://github.com/chiradeep/nitrox/blob/master/marathon/README.marathon.md)
