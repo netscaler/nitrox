@@ -25,7 +25,12 @@ class KubernetesInterface(object):
         self.cfg_file = cfg_file
         self.netskaler = netskaler
         self.app_info = app_info
+        self.tls_verify = True
         self.config = KubeConfig(cfg_file)
+        self.config.parse()
+        if self.config.cluster:
+            if self.config.cluster.get('insecure-skip-tls-verify'):
+                self.tls_verify = False
         self.client = HTTPClient(config=self.config)
 
     def _get(self, api, namespace='default'):
@@ -35,7 +40,7 @@ class KubernetesInterface(object):
             # TODO:support other namespace
             response = self.client.get(url=api,
                                        namespace=namespace,
-                                       verify=False)  # FIXME: always verify
+                                       verify=self.tls_verify)
         except requests.exceptions.RequestException as e:
             logger.error('Error while calling  %s:%s', api, e.message)
             success = False  # TODO: throw exception
@@ -112,7 +117,7 @@ class KubernetesInterface(object):
             "resourceVersion=%s&watch=true" % resource_version
         evts = self.client.session.request('GET', url,
                                            stream=True,
-                                           verify=False)
+                                           verify=self.tls_verify)
         # TODO re-start the loop when disconnected from api server
         for e in evts.iter_lines():
             event_json = json.loads(e)
@@ -124,7 +129,7 @@ class KubernetesInterface(object):
         try:
             endpoints = self.client.get(url=api,
                                         namespace='default',  # FIXME
-                                        verify=False).json()  # FIXME: verify
+                                        verify=self.tls_verify).json()
         except requests.exceptions.RequestException as e:
             logger.error('Error while calling  %s:%s', api, e.message)
             # TODO throw exception
