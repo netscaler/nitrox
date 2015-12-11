@@ -28,20 +28,27 @@ class KubernetesInterface(object):
         self.config = KubeConfig(cfg_file)
         self.client = HTTPClient(config=self.config)
 
-    def get_services(self):
-        api = '/services/'
+    def _get(self, api, namespace='default'):
+        response = None
+        success = True
         try:
             # TODO:support other namespace
             response = self.client.get(url=api,
-                                       namespace='default',
+                                       namespace=namespace,
                                        verify=False)  # FIXME: always verify
         except requests.exceptions.RequestException as e:
             logger.error('Error while calling  %s:%s', api, e.message)
-            return []
-        if response.status_code >= 300:
+            success = False  # TODO: throw exception
+        if success and response.status_code >= 300:
             logger.error('Got HTTP {code}: {body}'.
                          format(code=response.status_code, body=response.text))
-            return endpoints
+            success = False
+        return success, response
+
+    def get_node_ports(self):
+        success, response = self._get('/services')
+        if not success:
+            return []
         svc_list = response.json()
         nodePorts = [{item['metadata']['name']:
                      [port['nodePort'] for port in item['spec']['ports']]}
@@ -53,67 +60,55 @@ class KubernetesInterface(object):
     def get_backends_for_app(self, appid):
         """Get host endpoints for apps (services)
 
-        :returns: endpoints dict
-        :rtype: dict
+        :returns: list of endpoint (hostIp, port) tuples
+        :rtype: list
         """
-        endpoints = []
-        response = None
+        backends = []
         api = '/services/' + appid
-        try:
-            # TODO:support other namespace
-            response = self.client.get(url=api,
-                                       namespace='default',
-                                       verify=False)  # FIXME: always verify
-        except requests.exceptions.RequestException as e:
-            logger.error('Error while calling  %s:%s', api, e.message)
-            return []
-        if response.status_code >= 300:
+        success, response = self._get(api)
+        if not success and response and response.status_code >= 300:
             status = response.json()
             if status['reason'] == 'NotFound':
                 logger.info("Service %s not found" % appid)
-            else:
-                logger.error('Got HTTP {code}: {body}'.
-                             format(code=response.status_code,
-                                    body=response.text))
-            return endpoints
+        if not success:
+            return backends
         svc = response.json()
         # node port is the backend port we need. Handle only 1 port for now
         nodePort = svc['spec']['ports'][0]['nodePort']  # TODO
         if nodePort == 0:
             logger.warn("Service %s does not have a node port" % appid)
-            return endpoints
-        # find the selectors so that we can find its pods
-        selector = svc['spec']['selector']
-        if not selector:
-            logger.error("Found zero selectors for service %s", appid)
-            return endpoints
-
-        # construct label selector
-        labelString = ""
-        for k, v in selector.iteritems():
-            labelString = labelString + "%s=%s," % (k, v)
-
-        pods = None
-        api = '/pods?labelSelector=' + labelString.rstrip(",")
-        try:
-            pods = self.client.get(url=api,
-                                   namespace='default',  # FIXME
-                                   verify=False)  # FIXME: verify
-        except requests.exceptions.RequestException as e:
-            logger.error('Error while calling  %s:%s', api, e.message)
-            return endpoints
-        if pods.status_code == 200:
-            pods = pods.json()
-            for pd in pods['items']:
-                if pd['status']['phase'] == 'Running':
-                    endpoints.append((pd['status']['hostIP'], nodePort))
-        return list(set(endpoints))
+            return backends
+        # find the endpoint for the service so that we can find its pods
+        api = '/endpoints'
+        success, endpoints = self._get(api)
+        if not success:
+            return backends
+        podnames = []
+        if endpoints.status_code == 200:
+            endpoints = endpoints.json()
+            for ep in endpoints['items']:
+                if ep['metadata']['name'] == appid:
+                    if ep['subsets']:
+                        podnames = [addr['targetRef']['name']
+                                    for addr in ep['subsets'][0]['addresses']]
+                    break
+        for p in podnames:
+            api = '/pods/' + p
+            success, response = self._get(api)
+            if not success:
+                continue
+            pod = response.json()
+            status = pod['status']['phase']
+            host = pod['status']['hostIP']
+            if status == 'Running':
+                backends.append((host, nodePort))
+        return list(set(backends))
 
     def events(self, resource_version):
-        """Get event stream for k8s pods
+        """Get event stream for k8s endpoints
         """
         url = self.client.url +\
-            "/v1/watch/namespaces/default/pods?" +\
+            "/v1/watch/namespaces/default/endpoints?" +\
             "resourceVersion=%s&watch=true" % resource_version
         evts = self.client.session.request('GET', url,
                                            stream=True,
@@ -124,23 +119,21 @@ class KubernetesInterface(object):
             yield event_json
 
     def watch_all_apps(self):
-        api = '/pods'
+        appnames = map(lambda x:  x['name'], self.app_info['apps'])
+        api = '/endpoints'
         try:
-            pods = self.client.get(url=api,
-                                   namespace='default',  # FIXME
-                                   verify=False).json()  # FIXME: verify
+            endpoints = self.client.get(url=api,
+                                        namespace='default',  # FIXME
+                                        verify=False).json()  # FIXME: verify
         except requests.exceptions.RequestException as e:
             logger.error('Error while calling  %s:%s', api, e.message)
             # TODO throw exception
             return
-        resource_version = pods['metadata']['resourceVersion']
+        resource_version = endpoints['metadata']['resourceVersion']
         for e in self.events(resource_version):
-            # labels = e['object']['metadata']['labels']
-            # it is challenging to go from pod labels to service
-            # since the service->pod mapping is equality/non-equality
-            # or set based. For now we will re-configure all apps
-            # TODO
-            self.configure_ns_for_all_apps()
+            service_name = e['object']['metadata']['name']
+            if service_name in appnames:
+                self.configure_ns_for_app(service_name)
 
     def configure_ns_for_app(self, appname):
         backends = self.get_backends_for_app(appname)
