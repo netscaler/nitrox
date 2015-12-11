@@ -126,14 +126,11 @@ class KubernetesInterface(object):
     def watch_all_apps(self):
         appnames = map(lambda x:  x['name'], self.app_info['apps'])
         api = '/endpoints'
-        try:
-            endpoints = self.client.get(url=api,
-                                        namespace='default',  # FIXME
-                                        verify=self.tls_verify).json()
-        except requests.exceptions.RequestException as e:
-            logger.error('Error while calling  %s:%s', api, e.message)
-            # TODO throw exception
+        success, response = self._get(api)
+        if not success:
+            logger.error("Failed to watch for endpoint changes, exiting")
             return
+        endpoints = response.json()
         resource_version = endpoints['metadata']['resourceVersion']
         for e in self.events(resource_version):
             service_name = e['object']['metadata']['name']
