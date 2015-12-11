@@ -109,18 +109,43 @@ class KubernetesInterface(object):
                     endpoints.append((pd['status']['hostIP'], nodePort))
         return list(set(endpoints))
 
-    def events(self):
-        """Get event stream
+    def events(self, resource_version):
+        """Get event stream for k8s pods
         """
-        pass
+        url = self.client.url +\
+            "/v1/watch/namespaces/default/pods?" +\
+            "resourceVersion=%s&watch=true" % resource_version
+        evts = self.client.session.request('GET', url,
+                                           stream=True,
+                                           verify=False)
+        # TODO re-start the loop when disconnected from api server
+        for e in evts.iter_lines():
+            event_json = json.loads(e)
+            yield event_json
 
     def watch_all_apps(self):
-        pass
+        api = '/pods'
+        try:
+            pods = self.client.get(url=api,
+                                   namespace='default',  # FIXME
+                                   verify=False).json()  # FIXME: verify
+        except requests.exceptions.RequestException as e:
+            logger.error('Error while calling  %s:%s', api, e.message)
+            # TODO throw exception
+            return
+        resource_version = pods['metadata']['resourceVersion']
+        for e in self.events(resource_version):
+            # labels = e['object']['metadata']['labels']
+            # it is challenging to go from pod labels to service
+            # since the service->pod mapping is equality/non-equality
+            # or set based. For now we will re-configure all apps
+            # TODO
+            self.configure_ns_for_all_apps()
 
     def configure_ns_for_app(self, appname):
         backends = self.get_backends_for_app(appname)
-        logger.debug("Backends for %s are %s" % (appname, str(backends)))
-        self.netskaler.configure_app(appname,  backends)
+        logger.info("Backends for %s are %s" % (appname, str(backends)))
+        #self.netskaler.configure_app(appname,  backends)
 
     def configure_ns_for_all_apps(self):
         appnames = map(lambda x:  x['name'], self.app_info['apps'])
@@ -144,10 +169,4 @@ if __name__ == "__main__":
     for app in appnames:
         endpoints = kube.get_backends_for_app(app)
         logger.info("Endpoints for app " + app + ": " + str(endpoints))
-
-    """
-    for e in kube.events():
-        if e is not None and e in appnames:
-            endpoints = kube.get_app_endpoints(e)
-            logger.info("Endpoints for app " + e + ": " + str(endpoints))
-    """
+    kube.watch_all_apps()
