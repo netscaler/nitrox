@@ -145,7 +145,7 @@ class KubernetesInterface(object):
     def configure_ns_for_app(self, appname):
         backends = self.get_backends_for_app(appname)
         logger.info("Backends for %s are %s" % (appname, str(backends)))
-        #self.netskaler.configure_app(appname,  backends)
+        self.netskaler.configure_app(appname,  backends)
 
     def configure_ns_for_all_apps(self):
         appnames = map(lambda x:  x['name'], self.app_info['apps'])
