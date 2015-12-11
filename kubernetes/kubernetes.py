@@ -149,7 +149,7 @@ class KubernetesInterface(object):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description='Process Kubernetes args')
-    parser.add_argument("--config", required=True, dest='cfg')
+    parser.add_argument("--kubeconfig", required=True, dest='cfg')
 
     result = parser.parse_args()
 

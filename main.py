@@ -8,6 +8,7 @@ import json
 sys.path.append(os.getcwd())
 from swarm.docker_swarm import DockerSwarmInterface
 from marathon.mesos_marathon import MarathonInterface
+from kubernetes.kubernetes import KubernetesInterface
 from netscaler import NetscalerInterface
 
 logging.basicConfig(level=logging.CRITICAL,
@@ -52,6 +53,26 @@ def mesos_marathon(app_info, netskaler):
     marathon.configure_ns_for_all_apps()
     marathon.watch_all_apps()
 
+
+def kubernetes(appinfo, netskaler):
+    parser = argparse.ArgumentParser(description='Process Kubernetes args')
+    parser.add_argument("--kube-config", required=True, dest='cfg')
+
+    result = parser.parse_args()
+
+    # '{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo"},
+    #  {"name": "bar"}]}'
+    app_info = json.loads(os.environ['APP_INFO'])
+    appnames = map(lambda x: x['name'], app_info['apps'])
+
+    kube = KubernetesInterface(result.cfg,
+                               netskaler=netskaler,
+                               app_info=appinfo)
+    for app in appnames:
+        endpoints = kube.get_backends_for_app(app)
+        logger.info("Endpoints for app " + app + ": " + str(endpoints))
+    kube.watch_all_apps()
+
 if __name__ == "__main__":
 
     # '{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo"},
@@ -67,9 +88,12 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--swarm-url", dest='swarm_url')
     group.add_argument("--marathon-url", dest='marathon_url')
+    group.add_argument("--kube-config", dest='kube_config')
     result = parser.parse_known_args()
 
     if result[0].swarm_url:
         docker_swarm(app_info, netskaler)
     elif result[0].marathon_url:
         mesos_marathon(app_info, netskaler)
+    elif result[0].kube_config:
+        kubernetes(app_info, netskaler)
