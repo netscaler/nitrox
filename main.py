@@ -56,7 +56,14 @@ def mesos_marathon(app_info, netskaler):
 
 def kubernetes(appinfo, netskaler):
     parser = argparse.ArgumentParser(description='Process Kubernetes args')
-    parser.add_argument("--kube-config", required=True, dest='cfg')
+    parser.add_argument("--kube-config", required=False,
+                        dest='cfg', default=None)
+    parser.add_argument("--kube-token", required=False,
+                        dest='token', default=None)
+    parser.add_argument("--kube-apiserver", required=False,
+                        dest='server', default=None)
+    parser.add_argument("--insecure-tls-verify",
+                        required=False, dest='insecure', default=None)
 
     result = parser.parse_args()
 
@@ -65,7 +72,10 @@ def kubernetes(appinfo, netskaler):
     app_info = json.loads(os.environ['APP_INFO'])
     appnames = map(lambda x: x['name'], app_info['apps'])
 
-    kube = KubernetesInterface(result.cfg,
+    kube = KubernetesInterface(cfg_file=result.cfg,
+                               token=result.token,
+                               server=result.server,
+                               insecure=result.insecure,
                                netskaler=netskaler,
                                app_info=appinfo)
     for app in appnames:
@@ -89,11 +99,12 @@ if __name__ == "__main__":
     group.add_argument("--swarm-url", dest='swarm_url')
     group.add_argument("--marathon-url", dest='marathon_url')
     group.add_argument("--kube-config", dest='kube_config')
+    group.add_argument("--kube-token", dest='kube_token')
     result = parser.parse_known_args()
 
     if result[0].swarm_url:
         docker_swarm(app_info, netskaler)
     elif result[0].marathon_url:
         mesos_marathon(app_info, netskaler)
-    elif result[0].kube_config:
+    elif result[0].kube_config or result[0].kube_token:
         kubernetes(app_info, netskaler)
