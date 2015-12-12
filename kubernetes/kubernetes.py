@@ -4,8 +4,9 @@ import json
 import logging
 import requests
 import requests.exceptions
-from pykube.config import KubeConfig
-from pykube.http import HTTPClient
+from client import K8sClient
+# from pykube.config import KubeConfig
+# from pykube.http import HTTPClient
 
 
 logger = logging.getLogger('docker_netscaler')
@@ -14,26 +15,32 @@ logger = logging.getLogger('docker_netscaler')
 class KubernetesInterface(object):
     """Interface for the Kubernetes REST API."""
 
-    def __init__(self, cfg_file, netskaler, app_info):
+    def __init__(self, netskaler, app_info,
+                 cfg_file=None, token=None,
+                 server=None, insecure=False):
         """Constructor
 
-        :param server: Kubernetes URL (e.g., 'http://api-server:8080' )
         :param str cfg_file: location of kubectl config (e.g., ~/.kube/config)
         :param NetscalerInterface netskaler: Netscaler object
         :param app_info : dictionary of app names
+        :param token: Auth (bearer) token
+        :param server: Kubernetes URL (e.g., 'http://api-server:8080' )
+        :param insecure: whether to ignore certificate host mismatch
         """
         self.cfg_file = cfg_file
         self.netskaler = netskaler
         self.app_info = app_info
-        self.tls_verify = True
-        self.config = KubeConfig(cfg_file)
-        self.config.parse()
-        if self.config.cluster:
-            if self.config.cluster.get('insecure-skip-tls-verify'):
+        self.tls_verify = insecure
+        self.client = K8sClient(cfg_file=cfg_file, 
+                                url=server,
+                                token=token,
+                                insecure=insecure)
+        config = self.client.config
+        if config.cluster:
+            if config.cluster.get('insecure-skip-tls-verify'):
                 logger.warning("Found 'insecure-skip-tls-verify' in config,"
                                "will skip TLS verification")
                 self.tls_verify = False
-        self.client = HTTPClient(config=self.config)
 
     def _get(self, api, namespace='default'):
         response = None
@@ -153,7 +160,10 @@ class KubernetesInterface(object):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description='Process Kubernetes args')
-    parser.add_argument("--kubeconfig", required=True, dest='cfg')
+    parser.add_argument("--kubeconfig", required=False, dest='cfg')
+    parser.add_argument("--token", required=False, dest='token')
+    parser.add_argument("--server", required=False, dest='server')
+    parser.add_argument("--insecure-tls-verify", required=False, dest='insecure')
 
     result = parser.parse_args()
 
@@ -162,7 +172,7 @@ if __name__ == "__main__":
     app_info = json.loads(os.environ['APP_INFO'])
     appnames = map(lambda x: x['name'], app_info['apps'])
 
-    kube = KubernetesInterface(result.cfg, netskaler=None, app_info=app_info)
+    kube = KubernetesInterface(netskaler=None, app_info=app_info, cfg_file=result.cfg, insecure=True)
     for app in appnames:
         endpoints = kube.get_backends_for_app(app)
         logger.info("Endpoints for app " + app + ": " + str(endpoints))
