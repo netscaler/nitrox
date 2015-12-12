@@ -40,4 +40,12 @@ The simplest way to get services in pods to use the API server is to run the API
     ````
 6. See the [Kubernetes User Guide to Accessing the Cluster](https://github.com/kubernetes/kubernetes/blob/master/docs/user-guide/accessing-the-cluster.md) for more help
 
+## Service Accounts
+We need to enable service accounts. Edit `/etc/kubernetes/apiserver`. Ensure that this line has `ServiceAccount`:
+
+````
+KUBE_ADMISSION_CONTROL="--admission_control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota,ServiceAccount"
+````
+
+and restart: `systemctl restart kube-apiserver`
 

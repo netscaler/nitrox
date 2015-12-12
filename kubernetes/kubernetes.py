@@ -30,6 +30,8 @@ class KubernetesInterface(object):
         self.config.parse()
         if self.config.cluster:
             if self.config.cluster.get('insecure-skip-tls-verify'):
+                logger.warning("Found 'insecure-skip-tls-verify' in config,"
+                               "will skip TLS verification")
                 self.tls_verify = False
         self.client = HTTPClient(config=self.config)
 
