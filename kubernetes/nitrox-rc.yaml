@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: nitroxv3
+  name: nitrox
   labels:
     svc: nitrox
 spec:
@@ -17,7 +17,7 @@ spec:
             - --kube-apiserver=https://$(KUBERNETES_SERVICE_HOST)/api 
             - --kube-token-file=/var/run/secrets/kubernetes.io/serviceaccount/token
           name: nitrox
-          image: chiradeeptest/nitrox:k8sv3
+          image: chiradeeptest/nitrox
           resources:
             requests:
               cpu: 100m
@@ -30,6 +30,6 @@ spec:
           - name: NS_USER
             value: nsroot
           - name: NS_PASSWORD
-            value: nsroot
+            value: T4ju8kkk9
           - name: APP_INFO
             value: '{"apps": [{"name": "frontend"}]}'
