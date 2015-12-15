@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nitroxv3
+  labels:
+    svc: nitrox
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        svc: nitrox
+    spec:
+      containers:
+        - args: 
+            - --insecure-skip-tls-verify=true
+            - --kube-apiserver=https://$(KUBERNETES_SERVICE_HOST)/api 
+            - --kube-token-file=/var/run/secrets/kubernetes.io/serviceaccount/token
+          name: nitrox
+          image: chiradeeptest/nitrox:k8sv3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          env:
+          - name: GET_HOSTS_FROM
+            value: env
+          - name: NS_IP
+            value: 10.220.225.225
+          - name: NS_USER
+            value: nsroot
+          - name: NS_PASSWORD
+            value: nsroot
+          - name: APP_INFO
+            value: '{"apps": [{"name": "frontend"}]}'

@@ -25,8 +25,6 @@ class K8sConfig(object):
         """
         Parses the configuration file.
         """
-        if self.doc is not None:
-            return
         with open(self.filename) as f:
             self.doc = yaml.safe_load(f.read())
         if "current-context" in self.doc and self.doc["current-context"]:
@@ -46,7 +44,8 @@ class K8sClient(object):
     Client for interfacing with the Kubernetes API.
     """
 
-    def __init__(self, cfg_file, url=None, token=None, insecure=False, version="v1"):
+    def __init__(self, cfg_file, url=None, token=None, ca=None,
+                 insecure_skip_tls_verify=False, version="/v1"):
         """
         Creates a new instance of the HTTPClient.
 
@@ -57,12 +56,18 @@ class K8sClient(object):
         """
         self.url = url
         self.token = token
-        self.insecure_tls_verify = insecure
+        self.insecure_skip_tls_verify = insecure_skip_tls_verify
+        self.ca = ca
         if cfg_file:
             self.config = K8sConfig(cfg_file)
             self.config.parse()
-            print self.config.cluster
             self.url = self.config.cluster["server"]
+            self.token = self.config.user["token"]
+            if "certificate-authority" in self.config.cluster:
+                self.ca = self.config.cluster["certificate-authority"]
+            elif self.config.cluster.get('insecure-skip-tls-verify'):
+                self.insecure_skip_tls_verify = True
+            # TODO handle client cert
         self.version = version
         self.session = self.build_session()
 
@@ -71,16 +76,12 @@ class K8sClient(object):
         Creates a new session for the client.
         """
         s = requests.Session()
-        if "certificate-authority" in self.config.cluster:
-            s.verify = self.config.cluster["certificate-authority"].filename()
-        if "token" in self.config.user and self.config.user["token"]:
-            s.headers["Authorization"] = \
-                "Bearer {}".format(self.config.user["token"])
-        else:
-            s.cert = (
-                self.config.user["client-certificate"].filename(),
-                self.config.user["client-key"].filename(),
-            )
+        if self.ca:
+            s.verify = self.ca
+        elif self.insecure_skip_tls_verify:
+            s.verify = False
+        s.headers["Authorization"] = "Bearer {}".format(self.token)
+        # TODO: handle client cert
         return s
 
     def get_kwargs(self, **kwargs):

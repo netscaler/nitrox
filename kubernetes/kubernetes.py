@@ -16,7 +16,7 @@ class KubernetesInterface(object):
     """Interface for the Kubernetes REST API."""
 
     def __init__(self, netskaler, app_info,
-                 cfg_file=None, token=None,
+                 cfg_file=None, token=None, ca=None,
                  server=None, insecure=False):
         """Constructor
 
@@ -25,22 +25,18 @@ class KubernetesInterface(object):
         :param app_info : dictionary of app names
         :param token: Auth (bearer) token
         :param server: Kubernetes URL (e.g., 'http://api-server:8080' )
+        :param ca: certificate authority of kube api server
         :param insecure: whether to ignore certificate host mismatch
         """
         self.cfg_file = cfg_file
         self.netskaler = netskaler
         self.app_info = app_info
-        self.tls_verify = insecure
-        self.client = K8sClient(cfg_file=cfg_file, 
+        self.insecure_tls_skip_verify = insecure
+        self.client = K8sClient(cfg_file=cfg_file,
                                 url=server,
                                 token=token,
-                                insecure=insecure)
-        config = self.client.config
-        if config.cluster:
-            if config.cluster.get('insecure-skip-tls-verify'):
-                logger.warning("Found 'insecure-skip-tls-verify' in config,"
-                               "will skip TLS verification")
-                self.tls_verify = False
+                                ca=ca,
+                                insecure_skip_tls_verify=insecure)
 
     def _get(self, api, namespace='default'):
         response = None
@@ -48,8 +44,7 @@ class KubernetesInterface(object):
         try:
             # TODO:support other namespace
             response = self.client.get(url=api,
-                                       namespace=namespace,
-                                       verify=self.tls_verify)
+                                       namespace=namespace)
         except requests.exceptions.RequestException as e:
             logger.error('Error while calling  %s:%s', api, e.message)
             success = False  # TODO: throw exception
@@ -125,8 +120,7 @@ class KubernetesInterface(object):
             "/v1/watch/namespaces/default/endpoints?" +\
             "resourceVersion=%s&watch=true" % resource_version
         evts = self.client.session.request('GET', url,
-                                           stream=True,
-                                           verify=self.tls_verify)
+                                           stream=True)
         # TODO re-start the loop when disconnected from api server
         for e in evts.iter_lines():
             event_json = json.loads(e)
@@ -163,7 +157,8 @@ if __name__ == "__main__":
     parser.add_argument("--kubeconfig", required=False, dest='cfg')
     parser.add_argument("--token", required=False, dest='token')
     parser.add_argument("--server", required=False, dest='server')
-    parser.add_argument("--insecure-tls-verify", required=False, dest='insecure')
+    parser.add_argument("--insecure-tls-verify", required=False,
+                        dest='insecure')
 
     result = parser.parse_args()
 
@@ -172,7 +167,8 @@ if __name__ == "__main__":
     app_info = json.loads(os.environ['APP_INFO'])
     appnames = map(lambda x: x['name'], app_info['apps'])
 
-    kube = KubernetesInterface(netskaler=None, app_info=app_info, cfg_file=result.cfg, insecure=True)
+    kube = KubernetesInterface(netskaler=None, app_info=app_info,
+                               cfg_file=result.cfg, insecure=True)
     for app in appnames:
         endpoints = kube.get_backends_for_app(app)
         logger.info("Endpoints for app " + app + ": " + str(endpoints))

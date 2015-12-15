@@ -60,9 +60,13 @@ def kubernetes(appinfo, netskaler):
                         dest='cfg', default=None)
     parser.add_argument("--kube-token", required=False,
                         dest='token', default=None)
+    parser.add_argument("--kube-token-file", required=False,
+                        dest='token_file', default=None)
+    parser.add_argument("--kube-certificate-authority", required=False,
+                        dest='ca', default=None)
     parser.add_argument("--kube-apiserver", required=False,
                         dest='server', default=None)
-    parser.add_argument("--insecure-tls-verify",
+    parser.add_argument("--insecure-skip-tls-verify",
                         required=False, dest='insecure', default=None)
 
     result = parser.parse_args()
@@ -72,10 +76,15 @@ def kubernetes(appinfo, netskaler):
     app_info = json.loads(os.environ['APP_INFO'])
     appnames = map(lambda x: x['name'], app_info['apps'])
 
+    if result.token_file:
+        with open(result.token_file) as tf:
+            result.token = tf.read().strip()
+
     kube = KubernetesInterface(cfg_file=result.cfg,
                                token=result.token,
                                server=result.server,
                                insecure=result.insecure,
+                               ca=result.ca,
                                netskaler=netskaler,
                                app_info=appinfo)
     for app in appnames:
@@ -99,12 +108,12 @@ if __name__ == "__main__":
     group.add_argument("--swarm-url", dest='swarm_url')
     group.add_argument("--marathon-url", dest='marathon_url')
     group.add_argument("--kube-config", dest='kube_config')
-    group.add_argument("--kube-token", dest='kube_token')
+    group.add_argument("--kube-apiserver", dest='kube_server')
     result = parser.parse_known_args()
 
     if result[0].swarm_url:
         docker_swarm(app_info, netskaler)
     elif result[0].marathon_url:
         mesos_marathon(app_info, netskaler)
-    elif result[0].kube_config or result[0].kube_token:
+    elif result[0].kube_config or result[0].kube_server:
         kubernetes(app_info, netskaler)
