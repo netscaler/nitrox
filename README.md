@@ -1,5 +1,5 @@
 # Nitrox
-Configure Citrix Netscaler loadbalancing for container platforms such as Docker Swarm, Mesos Marathon and Kubernetes. 
+Configure Citrix Netscaler loadbalancing for container platforms such as Docker Swarm, Mesos Marathon and Kubernetes. Please read this [blog post](https://cloudierthanthou.wordpress.com/2015/12/16/container-cluster-managers-and-citrix-netscaler/) for an introduction.
 
 # Theory of Operation
 1. Containers that form a load-balanced backend for an app/microservice are labeled with the same label (e.g., com.citrix.lb.appname=AccountService, or AccountService) or name
