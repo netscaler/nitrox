@@ -1,0 +1,34 @@
+[
+      { 
+      "servicename": "consul",
+        "backends": [
+            {"host": "192.168.99.100", "port":"8300"}
+        ]
+      },
+      { 
+      "servicename": "consul-53",
+        "backends": [
+            {"host": "192.168.99.100", "port":"8600"}
+        ]
+      },
+      { 
+      "servicename": "consul-8400",
+        "backends": [
+            {"host": "192.168.99.100", "port":"8400"}
+        ]
+      },
+      { 
+      "servicename": "consul-8500",
+        "backends": [
+            {"host": "192.168.99.100", "port":"8500"}
+        ]
+      },
+      { 
+      "servicename": "python-micro-service",
+        "backends": [
+            {"host": "192.168.99.100", "port":"32768"},
+            {"host": "192.168.99.100", "port":"32769"},
+            {"host": "192.168.99.100", "port":"32770"}
+        ]
+      }
+]

@@ -1,0 +1,18 @@
+[ 
+  {{- range $index, $svc := services}}
+    {{- if $index}}
+      {{- ","}}
+    {{- end}}
+      { 
+      "servicename": "{{$svc.Name}}",
+        "backends": [
+         {{- range $index1, $backend := service $svc.Name}}
+         {{- if $index1}}
+            {{- ","}}
+         {{- end}}
+            {"host": "{{.Address}}", "port":"{{.Port}}"}
+         {{- end}}
+        ]
+      }
+  {{- end}}
+]

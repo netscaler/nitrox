@@ -1,0 +1,13 @@
+[ 
+  { 
+    "servicename": "python-micro-service",
+    "backends": [
+     {{- range $index, $backend := service "python-micro-service"}}
+     {{- if $index}}
+        {{- ","}}
+     {{- end}}
+        {"host": "{{.Address}}", "port":"{{.Port}}"}
+     {{- end}}
+    ]
+  }
+]
