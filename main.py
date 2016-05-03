@@ -10,6 +10,7 @@ from swarm.docker_swarm import DockerSwarmInterface
 from marathon.mesos_marathon import MarathonInterface
 from kubernetes.kubernetes import KubernetesInterface
 from netscaler import NetscalerInterface
+from consul.cfg_file import ConfigFileDriver
 
 logging.basicConfig(level=logging.CRITICAL,
         format='%(asctime)s  - %(levelname)s - [%(filename)s:%(funcName)-10s]  (%(threadName)s) %(message)s')
@@ -41,8 +42,8 @@ def docker_swarm(app_info, netskaler):
 def mesos_marathon(app_info, netskaler):
     parser = argparse.ArgumentParser(description='Process Marathon args')
     parser.add_argument("--marathon-url", required=True, dest='marathon_url')
-    parser.add_argument("--marathon-user",  dest='marathon_user')
-    parser.add_argument("--marathon-password",  dest='marathon_password')
+    parser.add_argument("--marathon-user", dest='marathon_user')
+    parser.add_argument("--marathon-password", dest='marathon_password')
     result = parser.parse_args()
     marathon = MarathonInterface(server=result.marathon_url,
                                  netskaler=netskaler,
@@ -92,6 +93,19 @@ def kubernetes(appinfo, netskaler):
         logger.info("Endpoints for app " + app + ": " + str(endpoints))
     kube.watch_all_apps()
 
+
+def cfg_file_driver(netskaler, cfg_file):
+
+    # '{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo"},
+    #  {"name": "bar"}]}'
+    app_info = json.loads(os.environ['APP_INFO'])
+    appnames = map(lambda x: x['name'], app_info['apps'])
+
+    cfg_file_driver = ConfigFileDriver(netskaler=netskaler,
+                                       filename=cfg_file)
+    for app in appnames:
+        cfg_file_driver.configure_ns_for_app(app)
+
 if __name__ == "__main__":
 
     # '{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo"},
@@ -109,6 +123,7 @@ if __name__ == "__main__":
     group.add_argument("--marathon-url", dest='marathon_url')
     group.add_argument("--kube-config", dest='kube_config')
     group.add_argument("--kube-apiserver", dest='kube_server')
+    group.add_argument("--cfg-file", dest='cfg_file')
     result = parser.parse_known_args()
 
     if result[0].swarm_url:
@@ -117,3 +132,5 @@ if __name__ == "__main__":
         mesos_marathon(app_info, netskaler)
     elif result[0].kube_config or result[0].kube_server:
         kubernetes(app_info, netskaler)
+    elif result[0].cfg_file:
+        cfg_file_driver(netskaler, result[0].cfg_file)
