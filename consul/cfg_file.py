@@ -22,8 +22,8 @@ class ConfigFileDriver(object):
     def get_backends_for_app(self, appid):
         """Get host endpoints for apps
 
-        :returns: endpoints dict
-        :rtype: dict
+        :returns: endpoints list of tuples
+        :rtype: list
         """
         for svc in self.cfg_json:
             if svc["servicename"] == appid:
@@ -35,11 +35,6 @@ class ConfigFileDriver(object):
         backends = self.get_backends_for_app(appname)
         logger.debug("Backends for %s are %s" % (appname, str(backends)))
         self.netskaler.configure_app(appname, backends)
-
-    def configure_ns_for_all_apps(self):
-        appnames = map(lambda x: x['name'], self.app_info['apps'])
-        for app in appnames:
-            self.configure_ns_for_app(app)
 
 
 if __name__ == "__main__":
