@@ -26,7 +26,7 @@ Configure Citrix NetScaler loadbalancing for container platforms such as Docker 
     ```
     
     Alternatively, if the `lb_ip` and `lb_port` are included in the `APP_INFO` env variable, the `lb vserver` is configured automatically with some default options (`ROUNDROBIN`)
-4. The NetScaler Python SDK (can be downloaded here https://www.citrix.com/downloads/netscaler-adc/sdks.html or copied from the NetScaler)
+4. (for developers) The NetScaler Python SDK (can be downloaded here https://www.citrix.com/downloads/netscaler-adc/sdks.html or copied from the NetScaler)
 
 #Container Platforms
 

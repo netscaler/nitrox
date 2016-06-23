@@ -2,15 +2,15 @@
 You can run Nitrox as a container or as a regular python script.
 
 # Theory of Operation
-Exposing a replicated service to [external access](https://github.com/kubernetes/kubernetes/blob/master/docs/user-guide/accessing-the-cluster.md) in Kubernetes can be done with a supported `LoadBalancer` or `NodePort`. In the case of `NodePort` a (random) port is chosen and this port is exposed on every host (node) in the cluster. `nitrox` listens for changes in the replication controller for an app and figures out the hosts(nodes) the pods belonging to the replication controller run on. The list of [(nodeIP:nodePort)] for each pod is configured on the Netscaler.
+Exposing a replicated service to [external access](https://github.com/kubernetes/kubernetes/blob/master/docs/user-guide/accessing-the-cluster.md) in Kubernetes can be done with a supported `LoadBalancer` or `NodePort`. In the case of `NodePort` a (random) port is chosen and this port is exposed on every host (node) in the cluster. `nitrox` listens for changes in the replication controller for an app and figures out the hosts(nodes) the pods belonging to the replication controller run on. The list of [(nodeIP:nodePort)] for each pod is configured on the NetScaler.
 
-Note that this is rather inefficient: traffic sent to each NodePort is itself load balanced by `KubeProxy` to the destination Pods. So, Netscaler configuration such as `lbMethod` and `persistence` may be redundant / incompatible.
+Note that this is rather inefficient: traffic sent to each NodePort is itself load balanced by `KubeProxy` to the destination Pods. So, NetScaler configuration such as `lbMethod` and `persistence` may be redundant / incompatible.
 
 # Usage
 ## Pre-requisites
 1. Kubernetes cluster, at least v1.1
 2. Kubernetes [service accounts](https://github.com/kubernetes/kubernetes/blob/master/docs/admin/service-accounts-admin.md)  feature, enabled as described in [k8s.md](k8s.md)
-3. Netscaler pre-requisites are [here](https://github.com/chiradeep/nitrox/blob/master/README.md)
+3. NetScaler pre-requisites are [here](../README.md)
 
 ## As a container
 ### Launch the 'nitrox' container 
@@ -66,7 +66,7 @@ Create the [guestbook service](https://github.com/kubernetes/kubernetes/tree/mas
  kubectl create -f examples/guestbook/all-in-one/guestbook-all-in-one.yaml
 ````
 
-Now, scale the service up and down to see the Netscaler being reconfigured:
+Now, scale the service up and down to see the NetScaler being reconfigured:
 
 ````
 kubectl scale --replicas=2 rc/frontend
@@ -85,12 +85,12 @@ If you have the [DNS add-on](https://github.com/kubernetes/kubernetes/tree/maste
 
 ## For developers / hackers
 
-Download and install the Citrix Netscaler SDK for Python:
+Download and install the Citrix NetScaler SDK for Python:
 
 ```
-wget http://downloadns.citrix.com.edgesuite.net/10902/ns-10.5-58.11-sdk.tar.gz
-tar xzf ns-10.5-58.11-sdk.tar.gz
-tar xzvf ns-10.5-58.11-nitro-python.tgz 
+wget http://downloadns.citrix.com.edgesuite.net/10902/ns-11.0-65.31-sdk.tar.gz
+tar xzf ns-11.0-65.31-sdk.tar.gz
+tar xzvf ns-11.0-65.31-nitro-python.tgz 
 cd nitro-python-1.0/
 sudo python setup.py install
 ```
@@ -124,7 +124,7 @@ Create the [guestbook service](https://github.com/kubernetes/kubernetes/tree/mas
  kubectl create -f examples/guestbook/all-in-one/guestbook-all-in-one.yaml
 ````
 
-Now, scale the service up and down to see the Netscaler being reconfigured:
+Now, scale the service up and down to see the NetScaler being reconfigured:
 
 ````
 kubectl scale --replicas=2 rc/frontend

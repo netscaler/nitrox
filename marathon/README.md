@@ -4,7 +4,7 @@ You can run Nitrox as a container or as a regular python script.
 # Usage
 ## Pre-requisites
 1. Marathon framework (at least v0.9) running on Mesos.  
-2. Netscaler pre-requisites are [here](https://github.com/chiradeep/nitrox/blob/master/README.md)
+2. NetScaler pre-requisites are [here](../README.md)
 
 ## As a container
 ### Launch the 'nitrox' container 
@@ -32,7 +32,7 @@ The nitrox container can be scheduled using the Marathon APIs:
 curl -X POST http://marathon-master:8080/v2/apps -d @nitrox.json -H "Content-type: application/json"
 ````
 
-You can find `nitrox.json` [here](https://github.com/chiradeep/nitrox/blob/master/nitrox.json)
+You can find `nitrox.json` [here](./nitrox.json)
 
 ### Test
 Run some containers using Marathon and see your netscaler get reconfigured 
@@ -40,18 +40,18 @@ Run some containers using Marathon and see your netscaler get reconfigured
 ````
 curl -X POST http://marathon-master:8080/v2/apps -d @basic-3.json -H "Content-type: application/json
 ````
-Use the UI to scale the process up or down and watch the Netscaler being reconfigured
+Use the UI to scale the process up or down and watch the NetScaler being reconfigured
 
 
 
 ## For developers / hackers
 
-Download and install the Citrix Netscaler SDK for Python:
+Download and install the Citrix NetScaler SDK for Python:
 
 ```
-wget http://downloadns.citrix.com.edgesuite.net/10902/ns-10.5-58.11-sdk.tar.gz
-tar xzf ns-10.5-58.11-sdk.tar.gz
-tar xzvf ns-10.5-58.11-nitro-python.tgz 
+wget http://downloadns.citrix.com.edgesuite.net/10902/ns-11.0-65.31-sdk.tar.gz
+tar xzf ns-11.0-65.31-sdk.tar.gz
+tar xzvf ns-11.0-65.31-nitro-python.tgz 
 cd nitro-python-1.0/
 sudo python setup.py install
 ```
