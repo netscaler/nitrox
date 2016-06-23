@@ -4,7 +4,7 @@ You can run Nitrox as a container or as a regular python script.
 # Usage
 ## Pre-requisites
 1. Docker Swarm Cluster. Instructions assume you are running on the Swarm Manager/Master
-2. Netscaler pre-requisites are [here](https://github.com/chiradeep/nitrox/blob/master/README.swarm.md)
+2. NetScaler pre-requisites are [here](../README.md)
 3. An `appkey` that will be used to label the containers that comprise the apps/microservices. For example, `com.citrix.lb.appname`
 
 ## As a container
@@ -30,7 +30,7 @@ The code has been containerized into `chiradeeptest/nitrox` . Use this container
 Monitor the logs of the containers with `docker logs nitrox`
 
 ### Test
-Run some containers and see your netscaler get reconfigured 
+Run some containers and see your NetScaler get reconfigured 
 
 ````
 for i in 0 1 2 3 4 
@@ -61,11 +61,11 @@ Logs:
 
 ## For developers / hackers
 
-Download and install the Citrix Netscaler SDK for Python:
+Download and install the Citrix NetScaler SDK for Python:
 ```
-wget http://downloadns.citrix.com.edgesuite.net/10902/ns-10.5-58.11-sdk.tar.gz
-tar xzf ns-10.5-58.11-sdk.tar.gz
-tar xzvf ns-10.5-58.11-nitro-python.tgz 
+wget http://downloadns.citrix.com.edgesuite.net/11872/ns-11.0-65.31-sdk.tar.gz
+tar xzf ns-11.0-65.31-sdk.tar.gz
+tar xzvf ns-11.0-65.31-nitro-python.tgz 
 cd nitro-python-1.0/
 sudo python setup.py install
 ```
