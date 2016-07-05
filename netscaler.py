@@ -51,7 +51,7 @@ class NetscalerInterface:
                    {"name":"foo2"}, {"name":"foo3"}]}'
         """
         if configure_frontends:
-            frontends = [(l['name'], l['lb_ip'], l['lb_port'])
+            frontends = [(l['name'].replace('/', '_').lstrip('_'), l['lb_ip'], l['lb_port'])
                          for l in self.app_info['apps']
                          if l.get('lb_ip') and l.get('lb_port')]
             for f in frontends:
