@@ -53,7 +53,7 @@ class NetscalerInterface:
                    {"name":"foo2"}, {"name":"foo3"}]}'
         """
         if configure_frontends:
-            frontends = [(self._get_ns_compatible_name(l['name']), l['lb_ip'], l['lb_port'])
+            frontends = [(self._get_lb_name(l['name']), l['lb_ip'], l['lb_port'])
                          for l in self.app_info['apps']
                          if l.get('lb_ip') and l.get('lb_port')]
             for f in frontends:
@@ -61,6 +61,26 @@ class NetscalerInterface:
 
     def _get_ns_compatible_name(self, name):
         return name.replace('/', '_').lstrip('_')
+    
+    def _get_lb_name(self, name):
+        for app in self.app_info['apps']:
+            if app['name'] == name:
+                break
+            
+        if 'lb_name' in app:
+            return app['lb_name']
+        else:
+            return self._get_ns_compatible_name(name)
+
+    def _get_sg_name(self, name):
+        for app in self.app_info['apps']:
+            if app['name'] == name:
+                break
+            
+        if 'sg_name' in app:
+            return app['sg_name']
+        else:
+            return self._get_ns_compatible_name(name)
 
     def _create_service_group(self, grpname):
         try:
@@ -198,10 +218,11 @@ class NetscalerInterface:
     @ns_session_scope
     def configure_app(self, lbname,  srvrs):
         try:
-            lbname = self._get_ns_compatible_name(lbname)
-            self._create_service_group(lbname)  # Reuse lbname
-            self._bind_service_group_lb(lbname, lbname)
-            self._configure_services(lbname, srvrs)
+            lbname = self._get_lb_name(lbname)
+            sgname = self._get_sg_name(lbname)
+            self._create_service_group(sgname)
+            self._bind_service_group_lb(lbname, sgname)
+            self._configure_services(sgname, srvrs)
         except nitro_exception as ne:
             logger.warn("Nitro Exception: %s" % ne.message)
         except Exception as e:
