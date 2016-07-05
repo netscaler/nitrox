@@ -2,6 +2,8 @@
 
 from functools import wraps
 import logging
+import socket
+import re
 
 from nssrc.com.citrix.netscaler.nitro.exception.nitro_exception \
     import nitro_exception
@@ -130,6 +132,12 @@ class NetscalerInterface:
         lbvserver_servicegroup_binding.add(self.ns_session, binding)
 
     def _configure_services(self, grpname, srvrs):
+        srvrs_new= []
+        for s in srvrs:
+            if not re.match('^[0-9\.]+$', s[0]):
+                srvrs_new.append((socket.gethostbyname(s[0]), s[1]))
+        srvrs = srvrs_new
+        
         to_add = srvrs
         to_remove = []
         try:
