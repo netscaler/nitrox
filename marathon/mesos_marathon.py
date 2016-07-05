@@ -74,7 +74,7 @@ class MarathonInterface(object):
             yield None
 
     def watch_all_apps(self):
-        appnames = map(lambda x: '/' + x['name'], self.app_info['apps'])
+        appnames = map(lambda x: '/' + x['name'].lstrip('/'), self.app_info['apps'])
         for ev in self.events():
             if ev is None:
                 continue
@@ -95,7 +95,7 @@ class MarathonInterface(object):
     def configure_ns_for_app(self, appname):
         backends = self.get_backends_for_app("/" + appname)
         logger.debug("Backends for %s are %s" % (appname, str(backends)))
-        self.netskaler.configure_app(appname.replace('/', '_').lstrip('_'),  backends)
+        self.netskaler.configure_app(appname,  backends)
 
     def configure_ns_for_all_apps(self):
         appnames = map(lambda x:  x['name'], self.app_info['apps'])

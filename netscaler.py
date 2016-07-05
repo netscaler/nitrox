@@ -53,11 +53,14 @@ class NetscalerInterface:
                    {"name":"foo2"}, {"name":"foo3"}]}'
         """
         if configure_frontends:
-            frontends = [(l['name'].replace('/', '_').lstrip('_'), l['lb_ip'], l['lb_port'])
+            frontends = [(self._get_ns_compatible_name(l['name']), l['lb_ip'], l['lb_port'])
                          for l in self.app_info['apps']
                          if l.get('lb_ip') and l.get('lb_port')]
             for f in frontends:
                 self.configure_lb_frontend(f[0], f[1], f[2])
+
+    def _get_ns_compatible_name(self, name):
+        return name.replace('/', '_').lstrip('_')
 
     def _create_service_group(self, grpname):
         try:
@@ -195,6 +198,7 @@ class NetscalerInterface:
     @ns_session_scope
     def configure_app(self, lbname,  srvrs):
         try:
+            lbname = self._get_ns_compatible_name(lbname)
             self._create_service_group(lbname)  # Reuse lbname
             self._bind_service_group_lb(lbname, lbname)
             self._configure_services(lbname, srvrs)
