@@ -59,28 +59,28 @@ class NetscalerInterface:
             for f in frontends:
                 self.configure_lb_frontend(f[0], f[1], f[2])
 
-    def _get_ns_compatible_name(self, name):
-        return name.replace('/', '_').lstrip('_')
+    def _get_ns_compatible_name(self, app_name):
+        return app_name.replace('/', '_').lstrip('_')
     
-    def _get_lb_name(self, name):
+    def _get_lb_name(self, app_name):
         for app in self.app_info['apps']:
-            if app['name'] == name:
+            if app['name'] == app_name:
                 break
             
         if 'lb_name' in app:
             return app['lb_name']
         else:
-            return self._get_ns_compatible_name(name)
+            return self._get_ns_compatible_name(app_name)
 
-    def _get_sg_name(self, name):
+    def _get_sg_name(self, app_name):
         for app in self.app_info['apps']:
-            if app['name'] == name:
+            if app['name'] == app_name:
                 break
-            
+
         if 'sg_name' in app:
             return app['sg_name']
         else:
-            return self._get_ns_compatible_name(name)
+            return self._get_ns_compatible_name(app_name)
 
     def _create_service_group(self, grpname):
         try:
@@ -216,10 +216,10 @@ class NetscalerInterface:
             logger.warn("Exception: %s" % e.message)
 
     @ns_session_scope
-    def configure_app(self, lbname,  srvrs):
+    def configure_app(self, app,  srvrs):
         try:
-            lbname = self._get_lb_name(lbname)
-            sgname = self._get_sg_name(lbname)
+            lbname = self._get_lb_name(app)
+            sgname = self._get_sg_name(app)
             self._create_service_group(sgname)
             self._bind_service_group_lb(lbname, sgname)
             self._configure_services(sgname, srvrs)
