@@ -63,10 +63,15 @@ class NetscalerInterface:
         return app_name.replace('/', '_').lstrip('_')
     
     def _get_lb_name(self, app_name):
+        found = False
         for app in self.app_info['apps']:
-            if app['name'] == app_name:
+            if app['name'] == app_name or app['name'] == '/' + app_name:
+                found = True
                 break
-            
+
+        if not found:
+            return None
+        
         if 'lb_name' in app:
             return app['lb_name']
         else:
@@ -74,9 +79,13 @@ class NetscalerInterface:
 
     def _get_sg_name(self, app_name):
         for app in self.app_info['apps']:
-            if app['name'] == app_name:
+            if app['name'] == app_name or app['name'] == '/' + app_name:
+                found = True
                 break
 
+        if not found:
+            return None
+        
         if 'sg_name' in app:
             return app['sg_name']
         else:
@@ -220,6 +229,8 @@ class NetscalerInterface:
         try:
             lbname = self._get_lb_name(app)
             sgname = self._get_sg_name(app)
+            print lbname
+            print sgname
             self._create_service_group(sgname)
             self._bind_service_group_lb(lbname, sgname)
             self._configure_services(sgname, srvrs)
