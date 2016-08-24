@@ -11,8 +11,6 @@ from marathon.mesos_marathon import MarathonInterface
 from kubernetes.kubernetes import KubernetesInterface
 from netscaler import NetscalerInterface
 from consul.cfg_file import ConfigFileDriver
-import re
-import base64
 
 logging.basicConfig(level=logging.CRITICAL,
         format='%(asctime)s  - %(levelname)s - [%(filename)s:%(funcName)-10s]  (%(threadName)s) %(message)s')
@@ -109,8 +107,6 @@ def cfg_file_driver(netskaler, cfg_file):
         cfg_file_driver.configure_ns_for_app(app)
 
 if __name__ == "__main__":
-    if re.match('^[a-zA-Z0-9+/=]+$', os.environ['APP_INFO']):
-        os.environ['APP_INFO'] = base64.b64decode(os.environ['APP_INFO'])
 
     # '{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo"},
     #  {"name": "bar"}]}'
