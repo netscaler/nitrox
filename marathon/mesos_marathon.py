@@ -48,8 +48,13 @@ class MarathonInterface(object):
             logger.error('Got HTTP {code}: {body}'.
                          format(code=response.status_code, body=response.text))
             return []
-        return [(t['host'], t['ports'][0])  # TODO: what if there are > 1 ports
-                for t in response.json()['tasks']]
+        backends = []
+        for t in response.json()['tasks']:
+            for p in t['ports']:
+                if len(backends) < t['ports'].index(p) + 1:
+                    backends.append([])
+                backends[t['ports'].index(p)].append((t['host'], p))
+        return backends
 
     def events(self):
         """Get event stream

@@ -62,7 +62,7 @@ class NetscalerInterface:
     def _get_ns_compatible_name(self, app_name):
         return app_name.replace('/', '_').lstrip('_')
     
-    def _get_lb_name(self, app_name):
+    def _get_lb_name(self, app_name, index = 0):
         found = False
         for app in self.app_info['apps']:
             if app['name'] == app_name or app['name'] == '/' + app_name:
@@ -73,11 +73,14 @@ class NetscalerInterface:
             return None
         
         if 'lb_name' in app:
-            return app['lb_name']
+            if isinstance(app['lb_name'], list):
+                return app['lb_name'][index]
+            else:
+                return app['lb_name']
         else:
             return self._get_ns_compatible_name(app_name)
 
-    def _get_sg_name(self, app_name):
+    def _get_sg_name(self, app_name, index = 0):
         for app in self.app_info['apps']:
             if app['name'] == app_name or app['name'] == '/' + app_name:
                 found = True
@@ -87,7 +90,10 @@ class NetscalerInterface:
             return None
         
         if 'sg_name' in app:
-            return app['sg_name']
+            if isinstance(app['sg_name'], list):
+                return app['sg_name'][index]
+            else:
+                return app['sg_name']
         else:
             return self._get_ns_compatible_name(app_name)
 
@@ -227,13 +233,23 @@ class NetscalerInterface:
     @ns_session_scope
     def configure_app(self, app,  srvrs):
         try:
-            lbname = self._get_lb_name(app)
-            sgname = self._get_sg_name(app)
-            print lbname
-            print sgname
-            self._create_service_group(sgname)
-            self._bind_service_group_lb(lbname, sgname)
-            self._configure_services(sgname, srvrs)
+            if len(srvrs) == 0 or isinstance(srvrs[0], tuple):
+                lbname = self._get_lb_name(app)
+                sgname = self._get_sg_name(app)
+
+                self._create_service_group(sgname)
+                self._bind_service_group_lb(lbname, sgname)
+                self._configure_services(sgname, srvrs)
+            else:
+                for s in srvrs:
+                    i = srvrs.index(s)
+                    lbname = self._get_lb_name(app, i)
+                    sgname = self._get_sg_name(app, i)
+                    print lbname, sgname
+                    
+                    self._create_service_group(sgname)
+                    self._bind_service_group_lb(lbname, sgname)
+                    self._configure_services(sgname, srvrs[i])
         except nitro_exception as ne:
             logger.warn("Nitro Exception: %s" % ne.message)
         except Exception as e:
