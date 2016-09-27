@@ -18,5 +18,6 @@ COPY *.py /usr/src/app/
 COPY swarm/ /usr/src/app/swarm/
 COPY marathon/ /usr/src/app/marathon/
 COPY kubernetes/ /usr/src/app/kubernetes/
+COPY consul/ /usr/src/app/consul/
 
 ENTRYPOINT ["python", "/usr/src/app/main.py" ]
