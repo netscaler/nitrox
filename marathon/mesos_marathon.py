@@ -74,7 +74,7 @@ class MarathonInterface(object):
             yield None
 
     def watch_all_apps(self):
-        appnames = map(lambda x: '/' + x['name'], self.app_info['apps'])
+        appnames = map(lambda x: '/' + x['name'].lstrip('/'), self.app_info['apps'])
         for ev in self.events():
             if ev is None:
                 continue
