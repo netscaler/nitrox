@@ -15,7 +15,7 @@ Configure Citrix NetScaler loadbalancing for container platforms such as Docker 
    ````
    export NS_IP=10.220.73.33
    export NS_USER=nsroot
-   export NS_PASSWORD=3df8jha@k0
+   export NS_PASSWORD=useyourownnspassword
    ````
 
 2. List of microservices / apps that have to be load balanced. For example, 'AccountService', 'ProductCatalog', 'ShoppingCart', etc.
