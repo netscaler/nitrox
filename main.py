@@ -11,6 +11,7 @@ from marathon.mesos_marathon import MarathonInterface
 from kubernetes.kubernetes import KubernetesInterface
 from netscaler import NetscalerInterface
 from consul.cfg_file import ConfigFileDriver
+import re
 
 logging.basicConfig(level=logging.CRITICAL,
         format='%(asctime)s  - %(levelname)s - [%(filename)s:%(funcName)-10s]  (%(threadName)s) %(message)s')
@@ -110,7 +111,15 @@ if __name__ == "__main__":
 
     # '{"appkey": "com.citrix.lb.appname", "apps": [{"name": "foo"},
     #  {"name": "bar"}]}'
-    app_info = json.loads(os.environ['APP_INFO'])
+
+    m = re.match('^file://(?P<path>.*)$', os.environ['APP_INFO'])
+    if m:
+        f = open(m.group('path'))
+        app_info = json.loads(f.read())
+        f.close()
+    else:    
+        app_info = json.loads(os.environ['APP_INFO'])
+
     netskaler = NetscalerInterface(os.environ.get("NS_IP"),
                                    os.environ.get("NS_USER"),
                                    os.environ.get("NS_PASSWORD"),
